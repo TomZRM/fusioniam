@@ -1,0 +1,115 @@
+- hosts: localhost
+  vars:
+    ACCCONFIGROOTPW:                    "{{ lookup('env','ACCCONFIGROOTPW') }}"
+    ACCDATAROOTPW:                      "{{ lookup('env','ACCDATAROOTPW') }}"
+    ADMIN_LDAP_PASSWORD:                "{{ lookup('env','ADMIN_LDAP_PASSWORD') }}"
+    CUSTOMERID:                         "{{ lookup('env','CUSTOMERID') }}"
+    FUSIONDIRECTORY_LDAP_PASSWORD:      "{{ lookup('env','FUSIONDIRECTORY_LDAP_PASSWORD') }}"
+    FUSIONDIRECTORY_LDAP_USERNAME:      "{{ lookup('env','FUSIONDIRECTORY_LDAP_USERNAME') }}"
+    GID:                                "{{ lookup('env','FUSIONIAM_GID') }}"
+    LEMONLDAP2_LDAP_PASSWORD:           "{{ lookup('env','LEMONLDAP2_LDAP_PASSWORD') }}"
+    LEMONLDAP2_LDAP_USERNAME:           "{{ lookup('env','LEMONLDAP2_LDAP_USERNAME') }}"
+    LSC_LDAP_PASSWORD:                  "{{ lookup('env','LSC_LDAP_PASSWORD') }}"
+    LSC_LDAP_USERNAME:                  "{{ lookup('env','LSC_LDAP_USERNAME') }}"
+    SERVICEDESK_LDAP_PASSWORD:          "{{ lookup('env','SERVICEDESK_LDAP_PASSWORD') }}"
+    SERVICEDESK_LDAP_USERNAME:          "{{ lookup('env','SERVICEDESK_LDAP_USERNAME') }}"
+    UID:                                "{{ lookup('env','FUSIONIAM_UID') }}"
+    WHITEPAGES_LDAP_PASSWORD:           "{{ lookup('env','WHITEPAGES_LDAP_PASSWORD') }}"
+    WHITEPAGES_LDAP_USERNAME:           "{{ lookup('env','WHITEPAGES_LDAP_USERNAME') }}"
+    LDAP_TLS:                           "{{ lookup('env','LDAP_TLS') }}"
+    LDAP_CERTIFICATE_FILE:              "{{ lookup('env','LDAP_CERTIFICATE_FILE') }}"
+    LDAP_CERTIFICATE_KEY:               "{{ lookup('env','LDAP_CERTIFICATE_KEY') }}"
+    LDAP_TLS_PROTOCOL_MIN:              "{{ lookup('env','LDAP_TLS_PROTOCOL_MIN') }}"
+    LDAP_TLS_CIPHER_SUITE:              "{{ lookup('env','LDAP_TLS_CIPHER_SUITE') }}"
+    LDAP_SUFFIX:                        "{{ lookup('env','LDAP_SUFFIX') }}"
+  tasks:
+  - name: Asserts variables for TLS configuration
+    assert:
+      that: vars[item] is defined
+    with_items:
+      - 'LDAP_CERTIFICATE_FILE'
+      - 'LDAP_CERTIFICATE_KEY'
+      - 'LDAP_TLS_PROTOCOL_MIN'
+      - 'LDAP_TLS_CIPHER_SUITE'
+    when: LDAP_TLS
+
+  - name: Create Install directory
+    file:
+      path: /fusioniam/install/
+      state: directory
+      mode: "0700"
+
+  - name: Copy initial config
+    template:
+      src: config.ldif.j2
+      dest: /fusioniam/install/config.ldif
+      mode: "0600"
+
+  - name: Copy initial data
+    template:
+      src: data.ldif.j2
+      dest: /fusioniam/install/data.ldif
+      mode: "0600"
+
+  - name: check LDPAPI folder exists.
+    stat:
+      path: /var/run/slapd
+    register: slapd_folder
+
+  - name: Create LDAPI socket dir
+    file:
+        path: /var/run/slapd
+        state: directory
+        mode: "750"
+    when: slapd_folder.stat.exists == false or  slapd_folder.stat.isdir == false
+
+  - name: Create directories if it does not exist
+    file:
+      path: "{{ item }}"
+      state: directory
+      mode: '0755'
+    with_items:
+      - '/usr/local/openldap/var/openldap-data/'
+      - '/usr/local/openldap/var/run/'
+
+  - name: Check if OpenLDAP configuration folder is empty before proceeding
+    find:
+      paths: /usr/local/openldap/etc/openldap/slapd.d
+      patterns: '*.*'
+    register: filesFound
+
+  - debug:
+      msg: OpenLDAP configuration folder not empty, skipping configuration bootstrap.
+    when: filesFound.matched != 0
+
+  - name: OpenLDAP configuration folder empty, bootstrap OpenLDAP configuration.
+    shell: /usr/local/openldap/sbin/slapadd -n0 -F /usr/local/openldap/etc/openldap/slapd.d -l /fusioniam/install/config.ldif
+    when: filesFound.matched == 0
+
+  - name: Check if OpenLDAP data folder is empty before proceeding
+    find:
+      paths: /usr/local/openldap/var/openldap-data/
+      patterns: '*.mdb'
+    register: filesFound
+
+  - debug:
+      msg: OpenLDAP data folder not empty, skipping configuration bootstrap.
+    when: filesFound.matched != 0
+
+  - name: Adapt LDAP suffix in OpenLDAP data
+    shell: |
+      RDN=$( printf "{{LDAP_SUFFIX}}" | sed -e 's/^dc=\([^,]\+\),.*$/\1/' ) && \
+      sed -i -e "s/^dc:.*$/dc: ${RDN}/" /fusioniam/install/data.ldif
+    when: filesFound.matched == 0
+
+  - name: Adapt FD ACLs in OpenLDAP data
+    shell: |
+      ROLE=$( printf "cn=admin,ou=aclroles,ou=fusiondirectory,{{ LDAP_SUFFIX }}" | base64 -w 0 ) && \
+      GROUP=$( printf "cn=super-admins,ou=groups,o=admin,{{ LDAP_SUFFIX }}" | base64 -w 0 ) && \
+      ACL="gosaAclEntry: 0:subtree:${ROLE}:${GROUP}::" && \
+      sed -i -e "s/^gosaAclEntry:.*$/${ACL}/" /fusioniam/install/data.ldif
+    when: filesFound.matched == 0
+
+  - name: OpenLDAP data folder empty, bootstrap OpenLDAP data.
+    shell: /usr/local/openldap/sbin/slapadd -n1 -F /usr/local/openldap/etc/openldap/slapd.d -l /fusioniam/install/data.ldif
+    when: filesFound.matched == 0

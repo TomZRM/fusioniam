@@ -1,0 +1,16 @@
+issuerDBCASActivation: 1
+casAccessControlPolicy: 'error'
+oidcServicePrivateKeySig: |
+{{ lookup("file", lemonldap2_oidcpriv) | indent(4, True) }}
+oidcServicePublicKeySig: |
+{{ lookup("file", lemonldap2_oidcpub) | indent(4, True) }}
+issuerDBOpenIDConnectActivation: 1
+
+samlServicePrivateKeySig: |
+{{ lookup("file", lemonldap2_samlpriv) | indent(4, True) }}
+samlServicePublicKeySig: |
+{{ lookup("file", lemonldap2_samlpub) | indent(4, True) }}
+issuerDBSAMLActivation: 1
+samlOrganizationName: 'FusionIAM'
+samlOrganizationDisplayName: 'FusionIAM'
+samlOrganizationURL: 'https://www.fusioniam.org'

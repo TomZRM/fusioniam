@@ -1,0 +1,152 @@
+- name: Create PG Tables
+  postgresql_table:
+      name: "{{ item.name }}"
+      columns: "{{ item.columns }}"
+      db: "{{ lemonldap2_pgdb }}"
+      login_host: "{{ lemonldap2_pghost }}"
+      login_user: "{{ lemonldap2_pguser }}"
+      login_password: "{{ lemonldap2_pgpassword }}"
+      port: "{{ lemonldap2_pgport }}"
+      state: present
+  loop:
+      - name: lmconfig
+        columns:
+            - "cfgnum integer not null primary key"
+            - "data text"
+      - name: sessions
+        columns:
+            - "id varchar(64) not null primary key"
+            - "a_session jsonb"
+      - name: psessions
+        columns:
+            - "id varchar(64) not null primary key"
+            - "a_session jsonb"
+      - name: cassessions
+        columns:
+            - "id varchar(64) not null primary key"
+            - "a_session jsonb"
+      - name: samlsessions
+        columns:
+            - "id varchar(64) not null primary key"
+            - "a_session jsonb"
+      - name: oidcsessions
+        columns:
+            - "id varchar(64) not null primary key"
+            - "a_session jsonb"
+
+
+- name: Create PG Indices
+  postgresql_idx:
+      name: "{{ item.name }}"
+      table: "{{ item.table }}"
+      columns: "{{ item.columns }}"
+      db: "{{ lemonldap2_pgdb }}"
+      login_host: "{{ lemonldap2_pghost }}"
+      login_user: "{{ lemonldap2_pguser }}"
+      login_password: "{{ lemonldap2_pgpassword }}"
+      port: "{{ lemonldap2_pgport }}"
+      state: present
+  loop:
+    - name: i_s__whattotrace
+      table: sessions
+      columns: "((a_session ->> '_whatToTrace'))"
+    - name: i_s__session_kind
+      table: sessions
+      columns: "((a_session ->> '_session_kind'))"
+    - name: i_s__utime
+      table: sessions
+      columns: "((cast (a_session ->> '_utime' as bigint)))"
+    - name: i_s_ipaddr
+      table: sessions
+      columns: "((a_session ->> 'ipAddr'))"
+    - name: i_s__httpsessiontype
+      table: sessions
+      columns: "((a_session ->> '_httpSessionType'))"
+    - name: i_p__session_kind
+      table: psessions
+      columns: "((a_session ->> '_session_kind'))"
+    - name: i_p__httpsessiontype
+      table: psessions
+      columns: "((a_session ->> '_httpSessionType'))"
+    - name: i_p__session_uid
+      table: psessions
+      columns: "((a_session ->> '_session_uid'))"
+    - name: i_p_ipaddr
+      table: psessions
+      columns: "((a_session ->> 'ipAddr'))"
+    - name: i_p__whattotrace
+      table: psessions
+      columns: "((a_session ->> '_whatToTrace'))"
+    - name: i_a__session_kind
+      table: samlsessions
+      columns: "((a_session ->> '_session_kind'))"
+    - name: i_a__utime
+      table: samlsessions
+      columns: "((cast(a_session ->> '_utime' as bigint)))"
+    - name: i_a_proxyid
+      table: samlsessions
+      columns: "((a_session ->> 'ProxyID'))"
+    - name: i_a__nameid
+      table: samlsessions
+      columns: "((a_session ->> '_nameID'))"
+    - name: i_a__assert_id
+      table: samlsessions
+      columns: "((a_session ->> '_assert_id'))"
+    - name: i_a__art_id
+      table: samlsessions
+      columns: "((a_session ->> '_art_id'))"
+    - name: i_a__saml_id
+      table: samlsessions
+      columns: "((a_session ->> '_saml_id'))"
+    - name: i_o__session_kind
+      table: oidcsessions
+      columns: "((a_session ->> '_session_kind'))"
+    - name: i_o__utime
+      table: oidcsessions
+      columns: "((cast(a_session ->> '_utime' as bigint )))"
+    - name: i_c__session_kind
+      table: cassessions
+      columns: "((a_session ->> '_session_kind'))"
+    - name: i_c__utime
+      table: cassessions
+      columns: "((cast(a_session ->> '_utime' as bigint)))"
+    - name: i_c__cas_id
+      table: cassessions
+      columns: "((a_session ->> '_cas_id'))"
+    - name: i_c_pgtiou
+      table: cassessions
+      columns: "((a_session ->> 'pgtIou'))"
+
+- name: Prepare first configuration lmConf-1.json
+  ansible.builtin.copy:
+    src: /var/lib/lemonldap-ng/conf/lmConf-1.json
+    dest: /tmp/lmConf-1.json
+    mode: '0640'
+
+- name: Remove sample category in menu
+  ansible.builtin.shell: |
+    sed -i -e '/"1sample" : {/,/^      }/d' /tmp/lmConf-1.json
+
+- name: Remove default locationRules and exportedHeaders
+  ansible.builtin.shell: |
+    sed -i -e '/"locationRules" :/,/^   },/{/"locationRules" :/!{/^   },/!d}}' /tmp/lmConf-1.json
+    sed -i -e '/"exportedHeaders" :/,/^   },/{/"exportedHeaders" :/!{/^   },/!d}}' /tmp/lmConf-1.json
+
+- name: Remove default reloadUrls
+  ansible.builtin.shell: |
+    sed -i -e '/"reloadUrls" :/,/^   },/{/"reloadUrls" :/!{/^   },/!d}}' /tmp/lmConf-1.json
+
+- name: Adapt LemonLDAP domain
+  replace:
+    path: "/tmp/lmConf-1.json"
+    regexp: 'example\.com'
+    replace: '{{ lemonldap2_domain }}'
+
+- name: Import initial configuration
+  ansible.builtin.shell:
+    cmd: /usr/libexec/lemonldap-ng/bin/lemonldap-ng-cli -yes 1 restore - </tmp/lmConf-1.json
+
+- name: Remove first configuration lmConf-1.json
+  ansible.builtin.file:
+    path: /tmp/lmConf-1.json
+    state: absent

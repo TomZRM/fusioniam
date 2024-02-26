@@ -1,0 +1,10 @@
+dn: cn=webservice-fd-conf,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: webservice-fd-conf
+olcAttributeTypes:: ezB9KCAxLjMuNi4xLjQuMS4zODQxNC40NC4xLjEgTkFNRSAnZmRXZWJz
+ ZXJ2aWNlRm9yY2VTU0wnIERFU0MgJ0Z1c2lvbkRpcmVjdG9yeSAtIEZvcmNlIFNTTCBmb3IgSlN
+ PTi1SUEMgY2FsbHMnIEVRVUFMSVRZIGJvb2xlYW5NYXRjaCBTWU5UQVggMS4zLjYuMS40LjEuMT
+ Q2Ni4xMTUuMTIxLjEuNyBTSU5HTEUtVkFMVUUgKSA=
+olcObjectClasses: {0}( 1.3.6.1.4.1.38414.44.2.1 NAME 'fdWebservicePluginConf
+ ' DESC 'FusionDirectory webservice plugin configuration' SUP top AUXILIARY 
+ MUST ( cn $ fdWebserviceForceSSL ) )

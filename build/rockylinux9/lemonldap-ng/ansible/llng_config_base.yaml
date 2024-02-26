@@ -1,0 +1,105 @@
+domain: '{{ lemonldap2_domain }}'
+port: '443'
+https: 1
+mailUrl: 'https://{{ lemonldap2_portal }}.{{ lemonldap2_domain }}/resetpwd'
+portal: 'https://{{ lemonldap2_portal }}.{{ lemonldap2_domain }}/'
+registerUrl: 'https://{{ lemonldap2_portal }}.{{ lemonldap2_domain }}/register'
+#reloadUrls:
+#  reload.{{ lemonldap2_domain }}:{{ lemonldap2_local_port }}: 'http://reload.{{ lemonldap2_domain }}:{{ lemonldap2_local_port }}/reload'
+locationRules:
+  {{ lemonldap2_portal }}.{{ lemonldap2_domain }}:
+    default: 'accept'
+  {{ lemonldap2_manager }}.{{ lemonldap2_domain }}:
+    default: 'inGroup("access-llngmanager")'
+  {{ lemonldap2_whitepages_name }}.{{ lemonldap2_domain }}:
+    default: 'inGroup("access-whitepages")'
+{% if lemonldap2_unprotect_profile_url|bool == true %}
+    '^/index\.php\?page=display&dn=': 'unprotect'
+{% endif %}
+{% if lemonldap2_unprotect_photo_url|bool == true %}
+    '^/photo\.php\?dn=': 'unprotect'
+{% endif %}
+  {{ lemonldap2_servicedesk_name }}.{{ lemonldap2_domain }}:
+    default: 'inGroup("access-servicedesk")'
+  {{ lemonldap2_fusiondirectory_name }}.{{ lemonldap2_domain }}:
+    default: 'inGroup("access-fusiondirectory")'
+    '(?#restapi)^/rest\.php/v1': 'skip'
+    (?#logout)signout=1: 'logout'
+applicationList:
+  3documentation:
+    localdoc:
+      options:
+        display: 'off'
+    officialwebsite:
+      options:
+        display: 'off'
+  2administration:
+    manager:
+      options:
+        uri: 'https://{{ lemonldap2_manager }}.{{ lemonldap2_domain }}/manager.html'
+    notifications:
+      options:
+        uri: 'https://{{ lemonldap2_manager }}.{{ lemonldap2_domain }}/notifications.html'
+    sessions:
+      options:
+        uri: 'https://{{ lemonldap2_manager }}.{{ lemonldap2_domain }}/sessions.html'
+  1applications:
+    type: 'category'
+    catname: 'Applications'
+    whitepages:
+      type: 'application'
+      options:
+        description: 'Browse directory'
+        display: 'auto'
+        logo: 'thumbnail.png'
+        name: 'White pages'
+        uri: 'https://{{ lemonldap2_whitepages_name }}.{{ lemonldap2_domain }}/'
+    servicedesk:
+      type: 'application'
+      options:
+        description: 'Manage user accounts'
+        display: 'auto'
+        logo: 'help.png'
+        name: 'Service desk'
+        uri: 'https://{{ lemonldap2_servicedesk_name }}.{{ lemonldap2_domain }}/'
+    fusiondirectory:
+      type: 'application'
+      options:
+        description: 'Edit directory entries'
+        display: 'auto'
+        logo: 'folder.png'
+        name: 'Directory manager'
+        uri: 'https://{{ lemonldap2_fusiondirectory_name }}.{{ lemonldap2_domain }}/'
+exportedHeaders:
+  {{ lemonldap2_fusiondirectory_name }}.{{ lemonldap2_domain }}:
+    Auth-User: '$uid'
+  {{ lemonldap2_servicedesk_name }}.{{ lemonldap2_domain }}:
+    Auth-User: '$uid'
+portalDisplayRegister: 0
+portalCheckLogins: 0
+portalDisplayResetPassword: '{{ lemonldap2_portaldisplayresetpassword }}'
+portalDisplayOidcConsents: 0
+portalDisplayAppslist: 1
+portalDisplayChangePassword: '{{ lemonldap2_portaldisplaychangepassword }}'
+portalDisplayLoginHistory: 1
+portalDisplayLogout: 1
+portalDisplayPasswordPolicy: 1
+portalDisplayRefreshMyRights: 1
+requireToken: '{{ lemonldap2_requiretoken }}'
+singleSession: '{{ lemonldap2_singlesession }}'
+portalMainLogo: '{{ lemonldap2_logo }}'
+portalSkinBackground: '{{ lemonldap2_background }}'
+portalCustomCss: '{{ lemonldap2_css }}'
+securedCookie: 1
+cookieName: 'fusioniam-{{ lookup("env", "CUSTOMERID") }}'
+sameSite: 'None'
+totp2fSelfRegistration: 1
+totp2fActivation: 1
+totp2fIssuer: '{{ lemonldap2_sfaissuer }}'
+sfManagerRule: '{{ lemonldap2_sfamanagerrule }}'
+passwordPolicyMinDigit: '{{ lemonldap2_passwordpolicymindigit }}'
+passwordPolicyMinLower: '{{ lemonldap2_passwordpolicyminlower }}'
+passwordPolicyMinSize: '{{ lemonldap2_passwordpolicyminsize }}'
+passwordPolicyMinSpeChar: '{{ lemonldap2_passwordpolicyminspechar }}'
+passwordPolicyMinUpper: '{{ lemonldap2_passwordpolicyminupper }}'
+passwordPolicySpecialChar: '{{ lemonldap2_passwordpolicyspecialchar }}'

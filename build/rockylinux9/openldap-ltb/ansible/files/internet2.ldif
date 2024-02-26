@@ -1,0 +1,73 @@
+dn: cn=internet2,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: internet2
+olcAttributeTypes:: ezB9KCAxLjMuNi4xLjQuMS41OTIzLjEuMS4xLjEgIE5BTUUgJ2VkdVBl
+ cnNvbkFmZmlsaWF0aW9uJyAgREVTQyAnZWR1UGVyc29uIHBlciBJbnRlcm5ldDIgYW5kIEVEVUN
+ BVVNFJyAgRVFVQUxJVFkgY2FzZUlnbm9yZU1hdGNoICBTVUJTVFIgY2FzZUlnbm9yZVN1YnN0cm
+ luZ3NNYXRjaCBTWU5UQVggJzEuMy42LjEuNC4xLjE0NjYuMTE1LjEyMS4xLjE1JyApIA==
+olcAttributeTypes:: ezF9KCAxLjMuNi4xLjQuMS41OTIzLjEuMS4xLjcgIE5BTUUgJ2VkdVBl
+ cnNvbkVudGl0bGVtZW50JyAgREVTQyAnZWR1UGVyc29uIHBlciBJbnRlcm5ldDIgYW5kIEVEVUN
+ BVVNFJyAgRVFVQUxJVFkgY2FzZUV4YWN0TWF0Y2ggU1lOVEFYICcxLjMuNi4xLjQuMS4xNDY2Lj
+ ExNS4xMjEuMS4xNScgKSA=
+olcAttributeTypes:: ezJ9KCAxLjMuNi4xLjQuMS41OTIzLjEuMS4xLjIgIE5BTUUgJ2VkdVBl
+ cnNvbk5pY2tuYW1lJyAgREVTQyAnZWR1UGVyc29uIHBlciBJbnRlcm5ldDIgYW5kIEVEVUNBVVN
+ FJyAgRVFVQUxJVFkgY2FzZUlnbm9yZU1hdGNoICBTVUJTVFIgY2FzZUlnbm9yZVN1YnN0cmluZ3
+ NNYXRjaCBTWU5UQVggJzEuMy42LjEuNC4xLjE0NjYuMTE1LjEyMS4xLjE1JyApIA==
+olcAttributeTypes:: ezN9KCAxLjMuNi4xLjQuMS41OTIzLjEuMS4xLjMgIE5BTUUgJ2VkdVBl
+ cnNvbk9yZ0ROJyAgREVTQyAnZWR1UGVyc29uIHBlciBJbnRlcm5ldDIgYW5kIEVEVUNBVVNFJyA
+ gRVFVQUxJVFkgZGlzdGluZ3Vpc2hlZE5hbWVNYXRjaCAgU1lOVEFYICcxLjMuNi4xLjQuMS4xND
+ Y2LjExNS4xMjEuMS4xMicgU0lOR0xFLVZBTFVFICkg
+olcAttributeTypes:: ezR9KCAxLjMuNi4xLjQuMS41OTIzLjEuMS4xLjQgIE5BTUUgJ2VkdVBl
+ cnNvbk9yZ1VuaXRETicgIERFU0MgJ2VkdVBlcnNvbiBwZXIgSW50ZXJuZXQyIGFuZCBFRFVDQVV
+ TRScgIEVRVUFMSVRZIGRpc3Rpbmd1aXNoZWROYW1lTWF0Y2ggIFNZTlRBWCAnMS4zLjYuMS40Lj
+ EuMTQ2Ni4xMTUuMTIxLjEuMTInICkg
+olcAttributeTypes:: ezV9KCAxLjMuNi4xLjQuMS41OTIzLjEuMS4xLjUgIE5BTUUgJ2VkdVBl
+ cnNvblByaW1hcnlBZmZpbGlhdGlvbicgIERFU0MgJ2VkdVBlcnNvbiBwZXIgSW50ZXJuZXQyIGF
+ uZCBFRFVDQVVTRScgIEVRVUFMSVRZIGNhc2VJZ25vcmVNYXRjaCAgU1VCU1RSIGNhc2VJZ25vcm
+ VTdWJzdHJpbmdzTWF0Y2ggU1lOVEFYICcxLjMuNi4xLjQuMS4xNDY2LjExNS4xMjEuMS4xNScgU
+ 0lOR0xFLVZBTFVFICkg
+olcAttributeTypes:: ezZ9KCAxLjMuNi4xLjQuMS41OTIzLjEuMS4xLjggIE5BTUUgJ2VkdVBl
+ cnNvblByaW1hcnlPcmdVbml0RE4nICBERVNDICdlZHVQZXJzb24gcGVyIEludGVybmV0MiBhbmQ
+ gRURVQ0FVU0UnICBFUVVBTElUWSBkaXN0aW5ndWlzaGVkTmFtZU1hdGNoICBTWU5UQVggJzEuMy
+ 42LjEuNC4xLjE0NjYuMTE1LjEyMS4xLjEyJyBTSU5HTEUtVkFMVUUgKSA=
+olcAttributeTypes:: ezd9KCAxLjMuNi4xLjQuMS41OTIzLjEuMS4xLjYgIE5BTUUgJ2VkdVBl
+ cnNvblByaW5jaXBhbE5hbWUnICBERVNDICdlZHVQZXJzb24gcGVyIEludGVybmV0MiBhbmQgRUR
+ VQ0FVU0UnICBFUVVBTElUWSBjYXNlSWdub3JlTWF0Y2ggIFNVQlNUUiBjYXNlSWdub3JlU3Vic3
+ RyaW5nc01hdGNoIFNZTlRBWCAnMS4zLjYuMS40LjEuMTQ2Ni4xMTUuMTIxLjEuMTUnIFNJTkdMR
+ S1WQUxVRSApIA==
+olcAttributeTypes: {8}( 1.3.6.1.4.1.5923.1.1.1.9 NAME 'eduPersonScopedAffili
+ ation' DESC 'eduPerson per Internet2 and EDUCAUSE' EQUALITY caseIgnoreMatch
+  SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' )
+olcAttributeTypes: {9}( 1.3.6.1.4.1.5923.1.1.1.10 NAME 'eduPersonTargetedID'
+  DESC 'eduPerson per Internet2 and EDUCAUSE' EQUALITY caseIgnoreMatch SYNTA
+ X '1.3.6.1.4.1.1466.115.121.1.15' )
+olcAttributeTypes: {10}( 1.3.6.1.4.1.5923.1.1.1.11 NAME 'eduPersonAssurance'
+  DESC 'eduPerson per Internet2 and EDUCAUSE' EQUALITY caseIgnoreMatch SYNTA
+ X '1.3.6.1.4.1.1466.115.121.1.15' )
+olcAttributeTypes: {11}( 1.3.6.1.4.1.5923.1.1.1.13 NAME 'eduPersonUniqueId' 
+  DESC 'eduPersonUniqueId per Internet2'  EQUALITY caseIgnoreMatch  SUBSTR c
+ aseIgnoreSubstringsMatch SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' SINGLE-VALU
+ E )
+olcAttributeTypes: {12}( 1.3.6.1.4.1.5923.1.2.1.2  NAME 'eduOrgHomePageURI' 
+  DESC 'eduOrg per Internet2 and EDUCAUSE'  EQUALITY caseExactMatch  SYNTAX 
+ '1.3.6.1.4.1.1466.115.121.1.15' )
+olcAttributeTypes: {13}( 1.3.6.1.4.1.5923.1.2.1.3  NAME 'eduOrgIdentityAuthN
+ PolicyURI'  DESC 'eduOrg per Internet2 and EDUCAUSE'  EQUALITY caseExactMat
+ ch  SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' )
+olcAttributeTypes: {14}( 1.3.6.1.4.1.5923.1.2.1.4  NAME 'eduOrgLegalName'  D
+ ESC 'eduOrg per Internet2 and EDUCAUSE'  EQUALITY caseIgnoreMatch  SYNTAX '
+ 1.3.6.1.4.1.1466.115.121.1.15' )
+olcAttributeTypes: {15}( 1.3.6.1.4.1.5923.1.2.1.5  NAME 'eduOrgSuperiorURI' 
+  DESC 'eduOrg per Internet2 and EDUCAUSE'  EQUALITY caseExactMatch  SYNTAX 
+ '1.3.6.1.4.1.1466.115.121.1.15' )
+olcAttributeTypes: {16}( 1.3.6.1.4.1.5923.1.2.1.6  NAME 'eduOrgWhitePagesURI
+ '  DESC 'eduOrg per Internet2 and EDUCAUSE'  EQUALITY caseExactMatch  SYNTA
+ X '1.3.6.1.4.1.1466.115.121.1.15' )
+olcObjectClasses: {0}( 1.3.6.1.4.1.5923.1.2.2  NAME 'eduOrg'  AUXILIARY  MAY
+  ( cn $ eduOrgHomePageURI $  eduOrgIdentityAuthNPolicyURI $ eduOrgLegalName
+  $  eduOrgSuperiorURI $ eduOrgWhitePagesURI ))
+olcObjectClasses: {1}( 1.3.6.1.4.1.5923.1.1.2  NAME 'eduPerson'  AUXILIARY  
+ MAY ( eduPersonAffiliation $ eduPersonNickname $  eduPersonOrgDN $ eduPerso
+ nOrgUnitDN $  eduPersonPrimaryAffiliation $ eduPersonPrincipalName $  eduPe
+ rsonEntitlement $ eduPersonPrimaryOrgUnitDN $ eduPersonUniqueId $ eduPerson
+ ScopedAffiliation $ eduPersonTargetedID $ eduPersonAssurance ) )

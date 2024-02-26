@@ -1,0 +1,38 @@
+server {
+  listen 8080;
+  server_name {{ lemonldap2_whitepages_name }}.{{ lemonldap2_domain }};
+
+  # Internal authentication request
+  location = /lmauth {
+    internal;
+
+    # FastCGI configuration
+    include /etc/nginx/fastcgi_params;
+    fastcgi_pass unix:/run/llng-fastcgi-server/llng-fastcgi.sock;
+    # Drop post datas
+    fastcgi_pass_request_body  off;
+    fastcgi_param CONTENT_LENGTH "";
+    # Keep original hostname
+    fastcgi_param HOST $http_host;
+    # Keep original request (LLNG server will receive /lmauth)
+    fastcgi_param X_ORIGINAL_URI $original_uri;
+    # Improve performances
+    #fastcgi_buffer_size 32k;
+    #fastcgi_buffers 32 32k;
+  }
+
+  # Client requests
+  location / {
+    auth_request /lmauth;
+    set $original_uri $uri$is_args$args;
+    auth_request_set $lmremote_user $upstream_http_lm_remote_user;
+    auth_request_set $lmlocation $upstream_http_location;
+    error_page 401 $lmlocation;
+
+    auth_request_set $lmcookie $upstream_http_cookie;
+    proxy_set_header Cookie $lmcookie;
+
+    proxy_pass http://{{ lemonldap2_whitepages_host }}:{{ lemonldap2_whitepages_port }}/;
+    include /etc/nginx/proxy_params;
+  }
+}

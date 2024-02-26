@@ -1,0 +1,22 @@
+<?php
+
+# LDAP
+$ldap_url = "{{ LDAP_PROTO }}://{{ LDAP_HOST }}:{{ LDAP_PORT }}";
+$ldap_starttls = {{ LDAP_STARTTLS }};
+$ldap_binddn = "cn={{ SERVICEDESK_LDAP_USERNAME }},ou=dsa,o=admin,{{ LDAP_SUFFIX }}";
+$ldap_bindpw = "{{ SERVICEDESK_LDAP_PASSWORD }}";
+$ldap_base = "o={{ CUSTOMERID }},{{ LDAP_SUFFIX }}";
+$ldap_user_base = "ou=users,".$ldap_base;
+$ldap_user_filter = "(objectClass=inetOrgPerson)";
+$ldap_size_limit = 100;
+$ldap_default_ppolicy = "cn=default,ou=ppolicies,".$ldap_base;
+
+# Graphics
+$display_footer = false;
+
+# Logout Link
+$logout_link = "https://auth.{{ SSO_DOMAIN}}/";
+
+# Audit file
+$audit_log_file = "php://stdout";
+$header_name_audit_admin = "AUTH_USER";

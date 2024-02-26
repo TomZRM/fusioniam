@@ -1,0 +1,10 @@
+dn: cn=dsa-fd-conf,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: dsa-fd-conf
+olcAttributeTypes:: ezB9KCAxLjMuNi4xLjQuMS4zODQxNC4xMy4xLjEgTkFNRSAnZmREU0FS
+ RE4nIERFU0MgJ0Z1c2lvbkRpcmVjdG9yeSAtIERTQSBSRE4nIEVRVUFMSVRZIGNhc2VFeGFjdEl
+ BNU1hdGNoIFNVQlNUUiBjYXNlRXhhY3RJQTVTdWJzdHJpbmdzTWF0Y2ggU1lOVEFYIDEuMy42Lj
+ EuNC4xLjE0NjYuMTE1LjEyMS4xLjI2IFNJTkdMRS1WQUxVRSkg
+olcObjectClasses: {0}( 1.3.6.1.4.1.38414.13.2.1 NAME 'fdDsaPluginConf' DESC 
+ 'FusionDirectory dsa plugin configuration' SUP top AUXILIARY MUST ( cn ) MA
+ Y ( fdDSARDN ) )

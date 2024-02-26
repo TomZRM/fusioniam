@@ -1,0 +1,111 @@
+- hosts: localhost
+  tasks:
+  - name: Install LTB repository
+    yum_repository:
+      name: OpenLDAP-LTB
+      description: OpenLDAP-LTB YUM repo
+      file: ltb-project
+      baseurl: https://ltb-project.org/rpm/openldap25/$releasever/$basearch
+      gpgcheck: yes
+
+  - name: Install LTB GPG key
+    copy:
+      src: RPM-GPG-KEY-LTB-project
+      dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-LTB-project
+      owner: root
+      group: root
+      mode: "0644"
+
+  - name: Import LTB GPG key
+    rpm_key:
+      key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LTB-project
+      state: present
+
+  - name: Install OpenLDAP LTB
+    dnf:
+      name: 
+        - openldap-ltb
+        - openldap-ltb-mdb-utils
+        - openldap-ltb-contrib-overlays
+        - openldap-ltb-explockout
+      state: latest
+
+  - name: Install ldapvi
+    dnf:
+      name: ldapvi
+      state: latest
+
+  - name: Create cn=config directory
+    file:
+      path: /usr/local/openldap/etc/openldap/slapd.d
+      state: directory
+      mode: "0750"
+
+  - name: remove slapd_conf parameter
+    replace:
+      path: /usr/local/openldap/etc/openldap/slapd-cli.conf
+      regexp: 'SLAPD_CONF=\"\$SLAPD_PATH\/etc\/openldap\/slapd.conf\"'
+      replace: 'SLAPD_CONF=""'
+
+  - name: configure slapd_conf_dir
+    replace:
+      path: /usr/local/openldap/etc/openldap/slapd-cli.conf
+      regexp: 'SLAPD_CONF_DIR=\"\"'
+      replace: 'SLAPD_CONF_DIR="$SLAPD_PATH/etc/openldap/slapd.d"'
+
+  - name: configure slapd user
+    replace:
+      path: /usr/local/openldap/etc/openldap/slapd-cli.conf
+      regexp: 'SLAPD_USER=\".*\"'
+      replace: 'SLAPD_USER="fusioniam"'
+
+  - name: configure slapd group
+    replace:
+      path: /usr/local/openldap/etc/openldap/slapd-cli.conf
+      regexp: 'SLAPD_GROUP=\".*\"'
+      replace: 'SLAPD_GROUP="fusioniam"'
+
+  - name: Install FD schemas
+    copy:
+      src: "{{ item }}"
+      dest: /usr/local/openldap/etc/openldap/schema/
+      owner: root
+      group: root
+      mode: "644"
+    with_items:
+      - core-fd.ldif
+      - core-fd-conf.ldif
+      - ldapns.ldif
+      - template-fd.ldif
+      - ppolicy-fd-conf.ldif
+      - openssh-lpk.ldif
+      - dsa-fd-conf.ldif
+      - mail-fd.ldif
+      - mail-fd-conf.ldif
+      - personal-fd.ldif
+      - personal-fd-conf.ldif
+      - webservice-fd-conf.ldif
+      - audit-fd.ldif
+      - audit-fd-conf.ldif
+      - public-forms-fd.ldif
+      - public-forms-fd-conf.ldif
+      - internet2.ldif
+      - supann-2019-11-22.ldif
+      - supann-fd-conf.ldif
+      - systems-fd.ldif
+      - systems-fd-conf.ldif
+      - service-fd.ldif
+
+  - name: Adapt ownership to fusioniam
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      recurse: yes
+      owner: fusioniam
+      group: fusioniam
+    loop:
+      - /.ansible
+      - /usr/local/openldap
+      - /var/backups/openldap
+      - /var/run/slapd
+      - /fusioniam

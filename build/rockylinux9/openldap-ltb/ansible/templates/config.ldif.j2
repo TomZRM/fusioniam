@@ -1,0 +1,173 @@
+dn: cn=config
+objectClass: olcGlobal
+cn: config
+olcLogLevel: stats
+olcPidFile: /usr/local/openldap/var/run/slapd.pid
+olcArgsFile: /usr/local/openldap/var/run/slapd.args
+olcServerID: 1
+{% if LDAP_TLS %}
+olcTLSCertificateFile: {{ LDAP_CERTIFICATE_FILE }}
+olcTLSCertificateKeyFile: {{ LDAP_CERTIFICATE_KEY }}
+olcTLSProtocolMin: {{ LDAP_TLS_PROTOCOL_MIN }}
+olcTLSCipherSuite: {{ LDAP_TLS_CIPHER_SUITE }}
+{% endif %}
+
+dn: cn=module{0},cn=config
+objectClass: olcModuleList
+objectClass: olcConfig
+objectClass: top
+cn: module{0}
+olcModulePath: /usr/local/openldap/libexec/openldap/:/usr/local/openldap/lib64/
+olcModuleLoad: {0}argon2.la
+olcModuleLoad: {1}pw-sha2
+olcModuleLoad: {2}pw-pbkdf2
+olcModuleLoad: {3}back_mdb.la
+olcModuleLoad: {4}dynlist.la
+olcModuleLoad: {5}autogroup
+olcModuleLoad: {6}memberof.la
+olcModuleLoad: {7}ppolicy.la
+olcModuleLoad: {8}syncprov.la
+olcModuleLoad: {9}unique.la
+olcModuleLoad: {10}refint.la
+
+dn: cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: schema
+
+include: file:///usr/local/openldap/etc/openldap/schema/core.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/cosine.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/inetorgperson.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/nis.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/dyngroup.ldif
+
+include: file:///usr/local/openldap/etc/openldap/schema/core-fd.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/core-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/ldapns.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/template-fd.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/ppolicy-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/openssh-lpk.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/dsa-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/mail-fd.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/mail-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/personal-fd.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/personal-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/webservice-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/audit-fd.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/audit-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/public-forms-fd.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/public-forms-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/internet2.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/supann-2019-11-22.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/supann-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/systems-fd.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/systems-fd-conf.ldif
+include: file:///usr/local/openldap/etc/openldap/schema/service-fd.ldif
+
+dn: olcDatabase={-1}frontend,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcFrontendConfig
+olcDatabase: {-1}frontend
+olcSortVals: member
+olcPasswordHash: {ARGON2}
+olcLastBind: TRUE
+
+dn: olcDatabase={0}config,cn=config
+objectClass: olcDatabaseConfig
+olcDatabase: {0}config
+olcAccess: {0}to * by dn.exact=gidNumber={{ GID }}+uidNumber={{ UID }},cn=peercred,cn=external,cn=auth manage by * break
+olcAccess: {1}to *  by * none
+olcRootDN: cn=config
+olcRootPW: {{ ACCCONFIGROOTPW }}
+
+dn: olcDatabase={1}mdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcMdbConfig
+olcDatabase: {1}mdb
+olcDbDirectory: /usr/local/openldap/var/openldap-data
+olcSuffix: {{ LDAP_SUFFIX }}
+olcAccess: {0} to attrs="userPassword"
+  by dn.exact=gidNumber={{ GID }}+uidNumber={{ UID }},cn=peercred,cn=external,cn=auth manage
+  by group="cn=acl-write-all,ou=groups,o=admin,{{ LDAP_SUFFIX }}" write
+  by group="cn=acl-read-all,ou=groups,o=admin,{{ LDAP_SUFFIX }}" read
+  by self write
+  by * auth
+olcAccess: {1} to dn.exact="{{ LDAP_SUFFIX }}"
+  by dn.exact=gidNumber={{ GID }}+uidNumber={{ UID }},cn=peercred,cn=external,cn=auth manage
+  by group="cn=acl-write-all,ou=groups,o=admin,{{ LDAP_SUFFIX }}" write
+  by group="cn=acl-write,ou=groups,o=admin,{{ LDAP_SUFFIX }}" write
+  by group="cn=acl-read-all,ou=groups,o=admin,{{ LDAP_SUFFIX }}" read
+  by group="cn=acl-read,ou=groups,o=admin,{{ LDAP_SUFFIX }}" read
+  by users read
+  by * none
+olcAccess: {2} to *
+  by dn.exact=gidNumber={{ GID }}+uidNumber={{ UID }},cn=peercred,cn=external,cn=auth manage
+  by group="cn=acl-write-all,ou=groups,o=admin,{{ LDAP_SUFFIX }}" write
+  by group="cn=acl-write,ou=groups,o=admin,{{ LDAP_SUFFIX }}" write
+  by group="cn=acl-read-all,ou=groups,o=admin,{{ LDAP_SUFFIX }}" read
+  by group="cn=acl-read,ou=groups,o=admin,{{ LDAP_SUFFIX }}" read
+  by * none
+olcLimits: {0}dn.exact=gidNumber={{ GID }}+uidNumber={{ UID }},cn=peercred,cn=external,cn=auth size=unlimited  time=unlimited
+olcLimits: {1}dn.subtree="ou=dsa,o=admin,{{ LDAP_SUFFIX }}" size=unlimited  time=unlimited
+olcRootDN: cn=admin,{{ LDAP_SUFFIX }}
+olcRootPW: {{ ACCDATAROOTPW }}
+olcDbIndex: entryCSN eq
+olcDbIndex: entryUUID eq
+olcDbIndex: cn pres,eq,sub
+olcDbIndex: objectClass eq
+olcDbIndex: uid pres,eq,sub
+olcDbIndex: mail pres,eq,sub
+olcDbIndex: gosaMailAlternateAddress pres,eq,sub
+olcDbMaxSize: 1073741824
+
+dn: olcOverlay={0}ppolicy,olcDatabase={1}mdb,cn=config
+objectClass: olcOverlayConfig
+objectClass: olcPPolicyConfig
+olcOverlay: {0}ppolicy
+olcPPolicyHashCleartext: TRUE
+olcPPolicyUseLockout: TRUE
+olcPPolicyForwardUpdates: FALSE
+olcPPolicyDefault: cn=default,ou=ppolicies,o={{ CUSTOMERID }},{{ LDAP_SUFFIX }}
+
+dn: olcOverlay={1}unique,olcDatabase={1}mdb,cn=config
+objectClass: olcUniqueConfig
+objectClass: olcOverlayConfig
+objectClass: olcConfig
+objectClass: top
+olcOverlay: {1}unique
+olcUniqueURI: ldap:///?uid?sub
+
+dn: olcOverlay={2}memberof,olcDatabase={1}mdb,cn=config
+objectClass: olcMemberOf
+objectClass: olcOverlayConfig
+objectClass: olcConfig
+objectClass: top
+olcOverlay: {2}memberof
+olcMemberOfGroupOC: groupOfNames
+olcMemberOfMemberAD: member
+olcMemberOfRefInt: TRUE
+
+dn: olcOverlay={3}refint,olcDatabase={1}mdb,cn=config
+objectClass: olcConfig
+objectClass: olcOverlayConfig
+objectClass: olcRefintConfig
+objectClass: top
+olcOverlay: {3}refint
+olcRefintAttribute: member
+olcRefintNothing: cn=empty
+
+dn: olcOverlay={4}dynlist,olcDatabase={1}mdb,cn=config
+objectClass: olcOverlayConfig
+objectClass: olcDynListConfig
+olcOverlay: {4}dynlist
+olcDynListAttrSet: {0}groupOfURLs memberURL member+memberOf@groupOfNames
+
+dn: olcOverlay={5}syncprov,olcDatabase={1}mdb,cn=config
+objectClass: top
+objectClass: olcConfig
+objectClass: olcOverlayConfig
+objectClass: olcSyncProvConfig
+olcOverlay: {5}syncprov
+
+dn: olcDatabase={2}monitor,cn=config
+objectClass: olcDatabaseConfig
+olcDatabase: {2}monitor

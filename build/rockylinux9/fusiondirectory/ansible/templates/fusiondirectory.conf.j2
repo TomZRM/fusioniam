@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<conf>
+  <!-- Main section **********************************************************
+       The main section defines global settings, which might be overridden by
+       each location definition inside.
+
+       For more information about the configuration parameters, take a look at
+       the FusionDirectory.conf(5) manual page.
+  -->
+  <main default="default"
+        logging="TRUE"
+        displayErrors="TRUE"
+        forceSSL="FALSE"
+        templateCompileDirectory="/var/spool/fusiondirectory/"
+        debugLevel="0"
+        portalUrl="{{ LEMONLDAP2_PORTAL }}.{{ SSO_DOMAIN }}"
+    >
+
+    <!-- Location definition -->
+        <location name="default"
+    >
+        <referral URI="{{ LDAP_PROTO }}://{{ LDAP_HOST }}:{{ LDAP_PORT }}" base="{{ LDAP_SUFFIX }}"
+                        adminDn="cn={{ FUSIONDIRECTORY_LDAP_USERNAME }},ou=dsa,o=admin,{{ LDAP_SUFFIX }}"
+                        adminPassword="{{ FUSIONDIRECTORY_LDAP_PASSWORD }}" />
+    </location>
+  </main>
+</conf>

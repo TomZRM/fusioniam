@@ -1,0 +1,160 @@
+version: '3.3'
+services:
+
+  # OpenLDAP
+  fusioniam-directory-server:
+    restart: unless-stopped
+    image: fusioniam-openldap-ltb:v0.1
+    container_name: "fusioniam-directory-server"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/ldap-data:/usr/local/openldap/var/openldap-data
+    - ./run/volumes/ldap-config:/usr/local/openldap/etc/openldap/slapd.d
+    - ./run/volumes/ldap-tls:/usr/local/openldap/etc/openldap/tls
+    ports:
+    - 127.0.0.1:33389:33389
+
+  # WP php-fpm
+  fusioniam-white-pages-php-fpm:
+    restart: unless-stopped
+    image: fusioniam-white-pages:v0.1
+    container_name: "fusioniam-white-pages-php-fpm"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/wp-run:/run/php-fpm
+    depends_on:
+      - fusioniam-directory-server
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","php-fpm" ]
+
+  # WP nginx
+  fusioniam-white-pages-nginx:
+    restart: unless-stopped
+    image: fusioniam-white-pages:v0.1
+    container_name: "fusioniam-white-pages-nginx"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/wp-run:/var/run/php-fpm
+    depends_on:
+      - fusioniam-directory-server
+      - fusioniam-white-pages-php-fpm
+    ports:
+    - 127.0.0.1:8083:8080
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","nginx" ]
+
+  # SD php-fpm
+  fusioniam-service-desk-php-fpm:
+    restart: unless-stopped
+    image: fusioniam-service-desk:v0.1
+    container_name: "fusioniam-service-desk-php-fpm"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/sd-run:/run/php-fpm
+    depends_on:
+      - fusioniam-directory-server
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","php-fpm" ]
+
+  # SD nginx
+  fusioniam-service-desk-nginx:
+    restart: unless-stopped
+    image: fusioniam-service-desk:v0.1
+    container_name: "fusioniam-service-desk-nginx"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/sd-run:/var/run/php-fpm
+    depends_on:
+      - fusioniam-directory-server
+      - fusioniam-service-desk-php-fpm
+    ports:
+    - 127.0.0.1:8082:8080
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","nginx" ]
+
+  # PG
+  fusioniam-database:
+    restart: unless-stopped
+    image: docker.io/library/postgres
+    container_name: "fusioniam-database"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/sso-data:/var/lib/postgresql/data
+    ports:
+    - 127.0.0.1:33432:5432
+
+  # llng-fastcgi-server
+  fusioniam-access-manager-fastcgi-server:
+    restart: unless-stopped
+    image: fusioniam-lemonldap-ng:v0.1
+    container_name: "fusioniam-access-manager-fastcgi-server"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/llng-run:/run/llng-fastcgi-server
+    - ./run/volumes/llng-keys:/etc/lemonldap-ng-keys
+    extra_hosts:
+    - "reload.demo.fusioniam.org:10.0.2.2"
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","llng-fastcgi-server" ]
+
+  # fusioniam-access-manager-nginx
+  fusioniam-access-manager-nginx:
+    restart: unless-stopped
+    image: fusioniam-lemonldap-ng:v0.1
+    container_name: "fusioniam-access-manager-nginx"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/llng-run:/run/llng-fastcgi-server
+    - ./run/volumes/llng-keys:/etc/lemonldap-ng-keys
+    ports:
+    - 127.0.0.1:8080:8080
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","nginx" ]
+
+  # fusioniam-access-manager-cron
+  fusioniam-access-manager-cron:
+    restart: unless-stopped
+    image: fusioniam-lemonldap-ng:v0.1
+    container_name: "fusioniam-access-manager-cron"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/llng-run:/run/llng-fastcgi-server
+    - ./run/volumes/llng-keys:/etc/lemonldap-ng-keys
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","purge-sessions" ]
+
+  # fusioniam-fusiondirectory-php-fpm
+  fusioniam-fusiondirectory-php-fpm:
+    restart: unless-stopped
+    image: fusioniam-fusiondirectory:v0.1
+    container_name: "fusioniam-fusiondirectory-php-fpm"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/fd-run:/run/php-fpm
+    - ./run/volumes/rsyslog:/dev/rsyslog
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","php-fpm" ]
+
+  # fusioniam-fusiondirectory-nginx
+  fusioniam-fusiondirectory-nginx:
+    restart: unless-stopped
+    image: fusioniam-fusiondirectory:v0.1
+    container_name: "fusioniam-fusiondirectory-nginx"
+    env_file:
+     - ./run/ENVVAR.example
+    volumes:
+    - ./run/volumes/fd-run:/var/run/php-fpm
+    ports:
+    - 127.0.0.1:8081:8080
+    entrypoint: ["/usr/bin/tini"]
+    command: [ "/bin/bash","/run-ct.sh","nginx" ]

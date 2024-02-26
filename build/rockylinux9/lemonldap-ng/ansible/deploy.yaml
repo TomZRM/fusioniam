@@ -1,0 +1,174 @@
+---
+- hosts: localhost
+
+  vars:
+      ansible_python_interpreter: "/usr/bin/python3"
+      lemonldap2_pghost: "{{ lookup('env', 'POSTGRES_HOST') }}"
+      lemonldap2_pgport: "{{ lookup('env', 'POSTGRES_PORT') }}"
+      lemonldap2_pgdb: "{{ lookup('env', 'POSTGRES_DB') | default ('lemonldapng', true) }}"
+      lemonldap2_pguser: "{{ lookup('env', 'POSTGRES_USER') }}"
+      lemonldap2_pgpassword: "{{ lookup('env', 'POSTGRES_PASSWORD') }}"
+      lemonldap2_domain: "{{ lookup('env', 'SSO_DOMAIN') }}"
+      lemonldap2_local_port: "{{ lookup('env', 'LEMONLDAP2_LOCAL_PORT') }}"
+      lemonldap2_portal: "{{ lookup('env', 'LEMONLDAP2_PORTAL') | default('auth', true) }}"
+      lemonldap2_manager: "{{ lookup('env', 'LEMONLDAP2_MANAGER') | default('manager', true) }}"
+      lemonldap2_api: "{{ lookup('env', 'LEMONLDAP2_API') | default('manager-api', true) }}"
+      lemonldap2_langs: "{{ lookup('env', 'LEMONLDAP2_LANGS') | default('en, fr, vi, it, ar, de, fi, tr, pl', true) }}"
+      lemonldap2_loglevel: "{{ lookup('env', 'LEMONLDAP2_LOGLEVEL') | default('notice', true) }}"
+      lemonldap2_sfaissuer: "{{ lookup('env', 'LEMONLDAP2_SFAISSUER') | default('FusionIAM', true) }}"
+      lemonldap2_sfamanagerrule: "{{ lookup('env', 'LEMONLDAP2_SFAMANAGERRULE') | default('1', true) }}"
+      lemonldap2_passwordpolicymindigit: "{{ lookup('env', 'LEMONLDAP2_PASSWORDPOLICYMINDIGIT') | default(0, true) }}"
+      lemonldap2_passwordpolicyminlower: "{{ lookup('env', 'LEMONLDAP2_PASSWORDPOLICYMINLOWER') | default(0, true) }}"
+      lemonldap2_passwordpolicyminsize: "{{ lookup('env', 'LEMONLDAP2_PASSWORDPOLICYMINSIZE') | default(0, true) }}"
+      lemonldap2_passwordpolicyminspechar: "{{ lookup('env', 'LEMONLDAP2_PASSWORDPOLICYMINSPECHAR') | default(0, true) }}"
+      lemonldap2_passwordpolicyminupper: "{{ lookup('env', 'LEMONLDAP2_PASSWORDPOLICYMINUPPER') | default(0, true) }}"
+      lemonldap2_passwordpolicyspecialchar: "{{ lookup('env', 'LEMONLDAP2_PASSWORDPOLICYSPECIALCHAR') | default('! @ # $ % & * ( ) - = + [ ] { } ; : , . / ?', true) }}"
+      lemonldap2_ldaphost: "{{ lookup('env', 'LDAP_HOST') }}"
+      lemonldap2_ldapport: "{{ lookup('env', 'LDAP_PORT') }}"
+      lemonldap2_ldapbase: "{{ lookup('env', 'LDAP_SUFFIX') | default('dc=fusioniam,dc=org', true) }}"
+      lemonldap2_ldapadmindn: "{{ lookup('env', 'ADMIN_LDAP_DN') | default ('cn=admin,{{ lemonldap2_ldapbase }}', true) }}"
+      lemonldap2_ldapadminpassword: "{{ lookup('env', 'ACCDATAROOTPW') }}"
+      lemonldap2_ldapusername: "{{ lookup('env', 'LEMONLDAP2_LDAP_USERNAME') }}"
+      lemonldap2_ldappassword: "{{ lookup('env', 'LEMONLDAP2_LDAP_PASSWORD') }}"
+      lemonldap2_oidcpriv: "{{ lookup('env', 'LEMONLDAP2_OIDCPRIV') }}"
+      lemonldap2_oidcpub: "{{ lookup('env', 'LEMONLDAP2_OIDCPUB') }}"
+      lemonldap2_samlpriv: "{{ lookup('env', 'LEMONLDAP2_SAMLPRIV') }}"
+      lemonldap2_samlpub: "{{ lookup('env', 'LEMONLDAP2_SAMLPUB') }}"
+      lemonldap2_managerapipassword: "{{ lookup('env', 'LEMONLDAP2_MANAGERAPIPASSWORD') }}"
+      lemonldap2_portaldisplayresetpassword: "{{ lookup('env', 'LEMONLDAP2_PORTALDISPLAYRESETPASSWORD') | default(1, true) }}"
+      lemonldap2_portaldisplaychangepassword: "{{ lookup('env', 'LEMONLDAP2_PORTALDISPLAYCHANGEPASSWORD') | default(1, true) }}"
+      lemonldap2_requiretoken: "{{ lookup('env', 'LEMONLDAP2_REQUIRETOKEN') | default(1, true) }}"
+      lemonldap2_singlesession: "{{ lookup('env', 'LEMONLDAP2_SINGLESESSION') | default(0, true)}}"
+      lemonldap2_mailldapfilter: "{{ lookup('env', 'LEMONLDAP2_MAILLDAPFILTER') | default('(&(objectClass=inetOrgPerson)(mail=$mail))', true)}}"
+
+      lemonldap2_whitepages_name: "{{ lookup('env', 'WHITEPAGES_NAME') }}"
+      lemonldap2_whitepages_host: "{{ lookup('env', 'WHITEPAGES_HOST') }}"
+      lemonldap2_whitepages_port: "{{ lookup('env', 'WHITEPAGES_PORT') }}"
+      lemonldap2_servicedesk_name: "{{ lookup('env', 'SERVICEDESK_NAME') }}"
+      lemonldap2_servicedesk_host: "{{ lookup('env', 'SERVICEDESK_HOST') }}"
+      lemonldap2_servicedesk_port: "{{ lookup('env', 'SERVICEDESK_PORT') }}"
+      lemonldap2_fusiondirectory_name: "{{ lookup('env', 'FUSIONDIRECTORY_NAME') }}"
+      lemonldap2_fusiondirectory_host: "{{ lookup('env', 'FUSIONDIRECTORY_HOST') }}"
+      lemonldap2_fusiondirectory_port: "{{ lookup('env', 'FUSIONDIRECTORY_PORT') }}"
+
+      lemonldap2_unprotect_profile_url: "{{ lookup('env', 'LEMONLDAP2_UNPROTECT_PROFILE_URL') | default(0, true) }}"
+      lemonldap2_unprotect_photo_url: "{{ lookup('env', 'LEMONLDAP2_UNPROTECT_PHOTO_URL') | default(0, true) }}"
+
+      fusiondirectory_ws_password: "{{ lookup('env', 'FUSIONDIRECTORY_WS_PASSWORD') | default(omit) }}"
+      fusiondirectory_ws_username: "{{ lookup('env', 'FUSIONDIRECTORY_WS_USERNAME') | default(omit) }}"
+
+      lemonldap2_logo: "{{ lookup('env', 'LOGO') | default('fusioniam-logo.png', true) }}"
+      lemonldap2_background: "{{ lookup('env', 'BACKGROUND') | default('fusioniam-background.jpg', true) }}"
+      lemonldap2_css: "{{ lookup('env', 'LEMONLDAP2_CSS') | default('fusioniam.css', true) }}"
+      container_type: "{{ lookup('env', 'CONTAINER_TYPE') }}"
+
+  tasks:
+  - name: LemonLDAP main configuration file
+    template:
+        src: templates/lemonldap-ng.ini.j2
+        dest: /etc/lemonldap-ng/lemonldap-ng.ini
+        mode: '0644'
+
+  - name: Nginx vhosts
+    template:
+        src: "templates/{{ item }}-nginx.conf.j2"
+        dest: "/etc/nginx/conf.d/{{ item }}-nginx.conf"
+        mode: '0644'
+    loop:
+        - api
+        - manager
+        - handler
+        - portal
+        - wp
+        - sd
+        - fd
+
+  - name: Check if htpasswd exists
+    stat:
+      path: "/etc/lemonldap-ng/fusion.htpasswd"
+    register: result
+
+  - name: Generate htpasswd file for accessing the FD WS API
+    ansible.builtin.shell:
+      cmd: htpasswd -bc /etc/lemonldap-ng/fusion.htpasswd {{ fusiondirectory_ws_username }} {{ fusiondirectory_ws_password }}
+    when: not result.stat.exists
+
+  - name: Fix htpasswd permissions
+    ansible.builtin.file:
+      path: /etc/lemonldap-ng/fusion.htpasswd
+      mode: 0400
+
+  - name: Enable nginx log formats
+    template:
+        src: templates/nginx-lmlog.conf
+        dest: /etc/nginx/conf.d/000-nginx-lmlog.conf
+        mode: '0644'
+
+  - name: Manage API auth file
+    copy:
+        content: "manager:{{ lemonldap2_managerapipassword | password_hash('sha256', 'sKX3U2HkT9CY') }}"
+        dest: /etc/lemonldap-ng/manager.htpasswd
+        mode: '0600'
+
+  - name: Remove unused vhosts
+    file:
+        path: "/etc/nginx/conf.d/{{ item }}-nginx.conf"
+        state: absent
+    loop:
+        - test
+
+  - name: Allow other containers to join reload url
+    lineinfile:
+      dest: "/etc/nginx/conf.d/handler-nginx.conf"
+      insertafter: 'allow 127.0.0.0'
+      line: "    allow 10.0.2.0/24;"
+
+  - name: Check current configuration number
+    shell: '/usr/libexec/lemonldap-ng/bin/lemonldap-ng-cli get cfgNum >/dev/null 2>/dev/null && /usr/libexec/lemonldap-ng/bin/lemonldap-ng-cli get cfgNum 2>/dev/null | sed -e "s/cfgNum = //" || echo "0"'
+    register: current_cfgnum
+    ignore_errors: yes
+
+  - name: Display current environment configuration
+    ansible.builtin.debug:
+      msg:
+      - "current configuration number = {{ current_cfgnum.stdout }}"
+      - "container type = {{ container_type }}"
+      - "Further database configuration will be done only if config number == 0 and container_type == llng-fastcgi-server"
+
+  # Only set up database if fastcgi container + no previous config
+  - name: LLNG database configuration
+    import_tasks: llng_config_db.yml
+    when:
+      - current_cfgnum.stdout == "0"
+      - container_type == "llng-fastcgi-server"
+
+  - name: Replace variables in llng_config_*.yaml template
+    ansible.builtin.template:
+      src: /llng_config_{{ item }}.yaml
+      dest: /tmp/llng_config_{{ item }}.yaml
+    loop:
+      - base
+      - auth
+      - sessions
+      - issuers
+    when:
+      - container_type == "llng-fastcgi-server"
+
+  - name: Apply llng_config_* configuration
+    ansible.builtin.shell:
+      cmd: /usr/libexec/lemonldap-ng/bin/lemonldap-ng-cli -yes 1 merge /tmp/llng_config_*.yaml
+    when:
+      - container_type == "llng-fastcgi-server"
+
+  - name: Remove llng_config_*
+    ansible.builtin.file:
+      path: /tmp/llng_config_{{ item }}.yaml
+      state: absent
+    loop:
+      - base
+      - auth
+      - sessions
+      - issuers
+    when:
+      - container_type == "llng-fastcgi-server"
+

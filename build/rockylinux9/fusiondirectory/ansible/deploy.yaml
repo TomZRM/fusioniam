@@ -1,0 +1,99 @@
+---
+- hosts: localhost
+  vars:
+    CUSTOMERID: "{{ lookup('env', 'CUSTOMERID') | default(omit) }}"
+    LDAP_HOST: "{{ lookup('env', 'LDAP_HOST') | default('localhost',true) }}"
+    LDAP_PORT: "{{ lookup('env', 'LDAP_PORT') | default('33389',true) }}"
+    LDAP_SUFFIX: "{{ lookup('env', 'LDAP_SUFFIX') | default('dc=fusioniam,dc=org',true) }}"
+    LDAP_PROTO: "{{ lookup('env', 'LDAP_PROTO') | default('ldap',true) }}"
+    LDAP_STARTTLS: "{{ lookup('env', 'LDAP_STARTTLS') | default('false',true) }}"
+    SSO_DOMAIN: "{{ lookup('env', 'SSO_DOMAIN') | default(omit) }}"
+    VHOST_NAME: "{{ lookup('env', 'FUSIONDIRECTORY_NAME') | default(omit) }}"
+    FUSIONDIRECTORY_LDAP_PASSWORD: "{{ lookup('env', 'FUSIONDIRECTORY_LDAP_PASSWORD') | default(omit) }}"
+    FUSIONDIRECTORY_LDAP_USERNAME: "{{ lookup('env', 'FUSIONDIRECTORY_LDAP_USERNAME') | default(omit) }}"
+    ACCCONFIGROOTPW: "{{ lookup('env', 'ACCCONFIGROOTPW') | default(omit) }}"
+    LEMONLDAP2_PORTAL: "{{ lookup('env', 'LEMONLDAP2_PORTAL') | default('auth', true) }}"
+    container_type: "{{ lookup('env', 'CONTAINER_TYPE') }}"
+  tasks:
+  - name: Assert variables
+    fail:
+      msg: "Required variable {{item}} is missing"
+    when: vars[item] is undefined or vars[item]|length == 0
+    loop:
+      - CUSTOMERID
+      - LDAP_HOST
+      - LDAP_PORT
+      - LDAP_SUFFIX
+      - LDAP_PROTO
+      - LDAP_STARTTLS
+      - SSO_DOMAIN
+      - VHOST_NAME
+      - FUSIONDIRECTORY_LDAP_PASSWORD
+      - FUSIONDIRECTORY_LDAP_USERNAME
+      - ACCCONFIGROOTPW
+
+  - name: Deploy fusiondirectory.conf file
+    template:
+      src: fusiondirectory.conf.j2
+      dest: /etc/fusiondirectory/fusiondirectory.conf
+      mode: u=rw,g=r,o=r
+
+  - name: Deploy vhost
+    template:
+      src: fusiondirectory-nginx.conf.j2
+      dest: /etc/nginx/conf.d/fusiondirectory.conf
+      mode: u=rw,g=r,o=r
+
+  - name: Deploy / redeploy schemas
+    shell: /deploy-schema.sh "{{ item }}"
+    loop:
+      - audit-fd-conf
+      - audit-fd
+      - community-fd-conf
+      - community-fd
+      - core-fd-conf
+      - core-fd
+      - dsa-fd-conf
+      - internet2
+      - ldapns
+      - mail-fd-conf
+      - mail-fd
+      - newsletter-fd-conf
+      - newsletter-fd
+      - openssh-lpk
+      - personal-fd-conf
+      - personal-fd
+      - ppolicy-fd-conf
+      - public-forms-fd-conf
+      - public-forms-fd
+      - service-fd
+      - supann-2019-11-22
+      - supann-fd-conf
+      - systems-fd-conf
+      - systems-fd
+      - template-fd
+      - webservice-fd-conf
+    when:
+      - container_type == "php-fpm"
+
+  - name: Register plugins
+    shell: php -d include_path=/usr/local/share/fusiondirectory/tools /usr/local/share/fusiondirectory/tools/fusiondirectory-plugins-manager --set-var "fd_home=/usr/local/share/fusiondirectory" --set-var "fd_config_dir=/etc/fusiondirectory" --register-plugin /usr/src/fd-plugins/{{ item }}
+    loop:
+      - audit
+      - dsa
+      - mail
+      - ssh
+      - personal
+      - posix
+      - ppolicy
+      - webservice
+      - systems
+      - public-forms
+      - supann
+      - ldapdump
+      - ldapmanager
+      - newsletter
+      - posix
+      - dyngroups
+    when:
+      - container_type == "php-fpm"

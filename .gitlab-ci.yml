@@ -1,0 +1,112 @@
+---
+stages:
+  - clean
+  - lint
+  - build_dependency
+  - build
+  - push
+
+variables:
+  REGISTRY: "gitlab.ow2.org:4567"
+
+clean_all:
+  stage: clean
+  tags:
+    - docker-build
+  script: |
+      docker system prune -a -f
+
+dockerlint:
+  stage: lint
+  tags:
+    - docker-build
+  script: |
+      for dockerfile in $(find . -name 'Dockerfile'); do
+        hadolint -c build/rockylinux9/hadolint.yml "${dockerfile}"
+      done
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - build/rockylinux9/Dockerfile
+        - build/rockylinux9/*/Dockerfile
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - build/rockylinux9/Dockerfile
+        - build/rockylinux9/*/Dockerfile
+
+dockerbuild_rockylinux9:
+  stage: build_dependency
+  tags:
+    - docker-build
+  script:
+    - docker build --no-cache -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-rockylinux9:snapshot -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-rockylinux9:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA} build/rockylinux9
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+dockerbuild_fusiondirectory:
+  stage: build
+  tags:
+    - docker-build
+  script:
+    - docker build --no-cache --build-arg DEPEND="${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-rockylinux9" --build-arg VERSION="snapshot" -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-fusiondirectory:snapshot -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-fusiondirectory:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA} build/rockylinux9/fusiondirectory
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+dockerbuild_lemonldap-ng:
+  stage: build
+  tags:
+    - docker-build
+  script:
+    - docker build --no-cache --build-arg DEPEND="${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-rockylinux9" --build-arg VERSION="snapshot" -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-lemonldap-ng:snapshot -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-lemonldap-ng:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA} build/rockylinux9/lemonldap-ng
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+dockerbuild_openldap-ltb:
+  stage: build
+  tags:
+    - docker-build
+  script:
+    - docker build --no-cache --build-arg DEPEND="${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-rockylinux9" --build-arg VERSION="snapshot" -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-openldap-ltb:snapshot -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-openldap-ltb:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA} build/rockylinux9/openldap-ltb
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+dockerbuild_service-desk:
+  stage: build
+  tags:
+    - docker-build
+  script:
+    - docker build --no-cache --build-arg DEPEND="${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-rockylinux9" --build-arg VERSION="snapshot" -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-service-desk:snapshot -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-service-desk:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA} build/rockylinux9/service-desk
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+dockerbuild_white-pages:
+  stage: build
+  tags:
+    - docker-build
+  script:
+    - docker build --no-cache --build-arg DEPEND="${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-rockylinux9" --build-arg VERSION="snapshot" -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-white-pages:snapshot -t ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-white-pages:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA} build/rockylinux9/white-pages
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+pushing_images:
+  stage: push
+  tags:
+    - docker-build
+  script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
+    - |
+      for dockerfile in $(find . -name 'Dockerfile'); do
+        IMAGE_NAME=$(basename $(dirname "${dockerfile}"))
+        docker push ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-${IMAGE_NAME}:snapshot
+        docker push ${REGISTRY}/${CI_PROJECT_PATH}/${CI_PROJECT_NAME}-${IMAGE_NAME}:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}
+      done
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

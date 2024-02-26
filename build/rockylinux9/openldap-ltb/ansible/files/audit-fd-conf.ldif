@@ -1,0 +1,19 @@
+dn: cn=audit-fd-conf,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: audit-fd-conf
+olcAttributeTypes:: ezB9KCAxLjMuNi4xLjQuMS4zODQxNC42MS4xLjEgTkFNRSAnZmRBdWRp
+ dEFjdGlvbnMnIERFU0MgJ0Z1c2lvbkRpcmVjdG9yeSAtIEFjdGlvbnMgdG8gYmUgc3RvcmVkIGJ
+ 5IGF1ZGl0IHBsdWdpbicgRVFVQUxJVFkgY2FzZUV4YWN0SUE1TWF0Y2ggU1VCU1RSIGNhc2VFeG
+ FjdElBNVN1YnN0cmluZ3NNYXRjaCBTWU5UQVggMS4zLjYuMS40LjEuMTQ2Ni4xMTUuMTIxLjEuM
+ jYpIA==
+olcAttributeTypes:: ezF9KCAxLjMuNi4xLjQuMS4zODQxNC42MS4xLjIgTkFNRSAnZmRBdWRp
+ dFJETicgREVTQyAnRnVzaW9uRGlyZWN0b3J5IC0gQXVkaXQgUkROJyBFUVVBTElUWSBjYXNlRXh
+ hY3RJQTVNYXRjaCBTVUJTVFIgY2FzZUV4YWN0SUE1U3Vic3RyaW5nc01hdGNoIFNZTlRBWCAxLj
+ MuNi4xLjQuMS4xNDY2LjExNS4xMjEuMS4yNiBTSU5HTEUtVkFMVUUpIA==
+olcAttributeTypes:: ezJ9KCAxLjMuNi4xLjQuMS4zODQxNC42MS4xLjMgTkFNRSAnZmRBdWRp
+ dFJvdGF0aW9uRGVsYXknIERFU0MgJ0Z1c2lvbkRpcmVjdG9yeSAtIEFjdGlvbnMgdG8gYmUgc3R
+ vcmVkIGJ5IGF1ZGl0IHBsdWdpbicgRVFVQUxJVFkgaW50ZWdlck1hdGNoIFNZTlRBWCAxLjMuNi
+ 4xLjQuMS4xNDY2LjExNS4xMjEuMS4yNyBTSU5HTEUtVkFMVUUpIA==
+olcObjectClasses: {0}( 1.3.6.1.4.1.38414.61.2.1 NAME 'fdAuditPluginConf' DES
+ C 'FusionDirectory audit plugin configuration' SUP top AUXILIARY MUST ( cn 
+ ) MAY ( fdAuditActions $ fdAuditRDN $ fdAuditRotationDelay ) )

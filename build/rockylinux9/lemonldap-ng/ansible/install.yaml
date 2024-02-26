@@ -1,0 +1,134 @@
+---
+- hosts: localhost
+  vars:
+    lemonldap2_version: 2.18.2
+
+  tasks:
+  - name: Install locales for glibc
+    yum:
+      name: glibc-all-langpacks
+      state: installed
+
+  - name: Add lemonldap 2.0 repository
+    yum_repository:
+     name: lemonldap-ng
+     description: LemonLDAP::NG packages
+     baseurl: https://lemonldap-ng.org/redhat/2.0/$releasever/noarch
+     enabled: yes
+     gpgcheck: yes
+     gpgkey: https://lemonldap-ng.org/_media/rpm-gpg-key-ow2
+
+  - name: Add lemonldap 2.0 extras
+    yum_repository:
+     name: lemonldap-ng-extras
+     description: LemonLDAP::NG extra packages
+     baseurl: https://lemonldap-ng.org/redhat/extras/$releasever
+     enabled: yes
+     gpgcheck: yes
+     gpgkey: https://lemonldap-ng.org/_media/rpm-gpg-key-ow2
+
+  - name: install lemonldap 2.0 package
+    yum:
+     name:
+      - "lemonldap-ng-{{ lemonldap2_version }}"
+      - "lemonldap-ng-fastcgi-server-{{ lemonldap2_version }}"
+      - "lemonldap-ng-nginx-{{ lemonldap2_version }}"
+      - python3
+      - python3-ldap
+      - python3-psycopg2
+      - perl-DBD-Pg
+      - lasso-perl
+      - perl-Glib
+     state: present
+
+  - name: Fix /var/lib/lemonldap-ng/conf access
+    ansible.builtin.file:
+      path: /var/lib/lemonldap-ng/
+      recurse: yes
+      mode: "0755"
+
+  - name: Fix nginx.conf
+    lineinfile:
+      path: /etc/nginx/nginx.conf
+      insertafter: 'http {'
+      line: '    server_names_hash_bucket_size 128;'
+
+  - name: Set default port to 8080 in nginx.conf (ipv4)
+    replace:
+      path: /etc/nginx/nginx.conf
+      regexp: listen[ \t]+80;
+      replace: listen 8080;
+
+  - name: Set default port to 8080 in nginx.conf (ipv6)
+    replace:
+      path: /etc/nginx/nginx.conf
+      regexp: listen[ \t]+\[::\]:80;
+      replace: listen [::]:8080;
+
+  - name: Create Log4Perl
+    copy:
+     src: log4perl.conf
+     dest: /etc/log4perl.conf
+
+  - name: Install Nginx proxy params
+    copy:
+     src: proxy_params
+     dest: /etc/nginx/proxy_params
+
+  - name: LemonLDAP daemon configuration file
+    template:
+        src: templates/llng-fastcgi-server.j2
+        dest: /etc/default/llng-fastcgi-server
+        owner: root
+        group: root
+        mode: '0644'
+
+  - name: Copy default logo
+    copy:
+      src: fusioniam-logo.png
+      dest: /usr/share/lemonldap-ng/portal/htdocs/static/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Copy default background
+    copy:
+      src: fusioniam-background.jpg
+      dest: /usr/share/lemonldap-ng/portal/htdocs/static/common/backgrounds/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Copy custom CSS
+    copy:
+      src: fusioniam.css
+      dest: /usr/share/lemonldap-ng/portal/htdocs/static/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Copy custom footer template
+    copy:
+      src: customfooter.tpl
+      dest: /usr/share/lemonldap-ng/portal/templates/bootstrap/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Adapt ownership to fusioniam
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      recurse: yes
+      owner: fusioniam
+      group: fusioniam
+    loop:
+      - /.ansible
+      - /etc/nginx/conf.d
+      - /usr/share/llng/conf
+      - /var/cache/lemonldap-ng
+      - /run/llng-fastcgi-server
+      - /run/nginx
+      - /etc/lemonldap-ng
+      - /var/lib/nginx
+      - /var/log/nginx

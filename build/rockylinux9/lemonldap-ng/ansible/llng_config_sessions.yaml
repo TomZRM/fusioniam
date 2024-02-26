@@ -1,0 +1,41 @@
+globalStorage: 'Apache::Session::Browseable::PgJSON'
+persistentStorage: 'Apache::Session::Browseable::PgJSON'
+samlStorage: 'Apache::Session::Browseable::PgJSON'
+casStorage: 'Apache::Session::Browseable::PgJSON'
+oidcStorage: 'Apache::Session::Browseable::PgJSON'
+
+globalStorageOptions:
+  DataSource: 'DBI:Pg:database={{ lemonldap2_pgdb }};host={{ lemonldap2_pghost }};port={{ lemonldap2_pgport }}'
+  TableName: 'sessions'
+  UserName: '{{ lemonldap2_pguser }}'
+  Password: '{{ lemonldap2_pgpassword }}'
+  Commit: 1
+
+persistentStorageOptions:
+  DataSource: 'DBI:Pg:database={{ lemonldap2_pgdb }};host={{ lemonldap2_pghost }};port={{ lemonldap2_pgport }}'
+  TableName: 'psessions'
+  UserName: '{{ lemonldap2_pguser }}'
+  Password: '{{ lemonldap2_pgpassword }}'
+  Commit: 1
+
+samlStorageOptions:
+  DataSource: 'DBI:Pg:database={{ lemonldap2_pgdb }};host={{ lemonldap2_pghost }};port={{ lemonldap2_pgport }}'
+  TableName: 'samlsessions'
+  UserName: '{{ lemonldap2_pguser }}'
+  Password: '{{ lemonldap2_pgpassword }}'
+  Commit: 1
+
+oidcStorageOptions:
+  DataSource: 'DBI:Pg:database={{ lemonldap2_pgdb }};host={{ lemonldap2_pghost }};port={{ lemonldap2_pgport }}'
+  TableName: 'oidcsessions'
+  UserName: '{{ lemonldap2_pguser }}'
+  Password: '{{ lemonldap2_pgpassword }}'
+  Commit: 1
+
+casStorageOptions:
+  DataSource: 'DBI:Pg:database={{ lemonldap2_pgdb }};host={{ lemonldap2_pghost }};port={{ lemonldap2_pgport }}'
+  TableName: 'cassessions'
+  UserName: '{{ lemonldap2_pguser }}'
+  Password: '{{ lemonldap2_pgpassword }}'
+  Commit: 1
+

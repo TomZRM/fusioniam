@@ -1,0 +1,23 @@
+authentication: 'LDAP'
+userDB: 'LDAP'
+passwordDB: 'LDAP'
+registerDB: 'Null'
+ldapPort: '{{ lemonldap2_ldapport }}'
+ldapServer: 'ldap://{{ lemonldap2_ldaphost}}:{{ lemonldap2_ldapport }}/'
+managerDn: 'cn={{ lemonldap2_ldapusername }},ou=dsa,o=admin,{{ lemonldap2_ldapbase }}'
+managerPassword: '{{ lemonldap2_ldappassword }}'
+ldapBase: '{{ lemonldap2_ldapbase }}'
+ldapGroupBase: '{{ lemonldap2_ldapbase }}'
+ldapGroupObjectClass: 'gosaGroupOfNames'
+ldapGroupRecursive: 1
+ldapPpolicyControl: 1
+ldapExportedVars:
+  uid: 'uid'
+  cn: 'cn'
+  sn: 'sn'
+  givenName: 'givenName'
+  mail: 'mail'
+mailLDAPFilter: '{{ lemonldap2_mailldapfilter }}'
+macros:
+  profile_url: '"https://{{ lemonldap2_whitepages_name }}.{{ lemonldap2_domain }}/index.php?page=display&dn=".$_dn'
+  photo_url: '"https://{{ lemonldap2_whitepages_name }}.{{ lemonldap2_domain }}/photo.php?dn=".$_dn'

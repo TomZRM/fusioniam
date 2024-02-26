@@ -1,0 +1,11 @@
+dn: cn=personal-fd-conf,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: personal-fd-conf
+olcAttributeTypes:: ezB9KCAxLjMuNi4xLjQuMS4zODQxNC41MC4xLjEgTkFNRSAnZmRQcml2
+ YXRlRW1haWxQYXNzd29yZFJlY292ZXJ5JyBERVNDICdGdXNpb25EaXJlY3RvcnkgLSBBbGxvdyB
+ 1c2Ugb2YgcHJpdmF0ZSBlbWFpbCBhZGRyZXNzIGZvciBwYXNzd29yZCByZWNvdmVyeScgRVFVQU
+ xJVFkgYm9vbGVhbk1hdGNoIFNZTlRBWCAxLjMuNi4xLjQuMS4xNDY2LjExNS4xMjEuMS43IFNJT
+ kdMRS1WQUxVRSApIA==
+olcObjectClasses: {0}( 1.3.6.1.4.1.38414.50.2.1 NAME 'fdPersonalPluginConf' 
+ DESC 'FusionDirectory personal plugin configuration' SUP top AUXILIARY MUST
+  ( cn ) MAY ( fdPrivateEmailPasswordRecovery ) )

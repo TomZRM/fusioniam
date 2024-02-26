@@ -1,0 +1,381 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Install LTB repository
+    yum_repository:
+      name: LTB-project-packages-noarch
+      description: LTB project packages (noarch) YUM repo
+      file: ltb-project
+      baseurl: https://ltb-project.org/rpm/$releasever/noarch
+      gpgcheck: yes
+
+  - name: Install LTB GPG key
+    copy:
+      src: RPM-GPG-KEY-LTB-project
+      dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-LTB-project
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Import LTB GPG key
+    rpm_key:
+      key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LTB-project
+      state: present
+
+  - name: Install Remi GPG key
+    copy:
+      src: RPM-GPG-KEY-remi2021
+      dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-remi.el9
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Import Remi GPG key
+    rpm_key:
+      key: /etc/pki/rpm-gpg/RPM-GPG-KEY-remi.el9
+      state: present
+
+  - name: Install Remi repo
+    yum:
+     name: "https://rpms.remirepo.net/enterprise/remi-release-9.rpm"
+     state: 'present'
+
+  - name: Enable PHP 7.4 Remi repo
+    shell: dnf -y module install php:remi-7.4
+
+  - name: Install required packages
+    yum:
+      name:
+       - nginx
+       - git
+       - php
+       - php-fpm
+       - php-ldap
+       - php-process
+       - gettext
+       - httpd-tools
+       - findutils
+       - openldap-clients
+       - php-pecl-imagick-im7
+       - php-imap
+       - php-pecl-yaml
+      state: present
+
+  - name: Install all locales
+    yum:
+      name:
+       - glibc-locale-source
+       - glibc-langpack-af
+       - glibc-langpack-ar
+       - glibc-langpack-pt
+       - glibc-langpack-ca
+       - glibc-langpack-zh
+       - glibc-langpack-es
+       - glibc-langpack-cs
+       - glibc-langpack-nl
+       - glibc-langpack-en
+       - glibc-langpack-fi
+       - glibc-langpack-fr
+       - glibc-langpack-de
+       - glibc-langpack-el
+       - glibc-langpack-hu
+       - glibc-langpack-id
+       - glibc-langpack-it
+       - glibc-langpack-ja
+       - glibc-langpack-ko
+       - glibc-langpack-lv
+       - glibc-langpack-nb
+       - glibc-langpack-fa
+       - glibc-langpack-pl
+       - glibc-langpack-pt
+       - glibc-langpack-ru
+       - glibc-langpack-es
+       - glibc-langpack-sv
+       - glibc-langpack-zh
+       - glibc-langpack-tr
+       - glibc-langpack-es
+       - glibc-langpack-vi
+      state: present
+
+  - name: Configure default locale
+    replace:
+      path: /etc/locale.conf
+      regexp: ^LANG=".*"
+      replace: LANG="fr_FR.UTF-8"
+
+#  - name: Allow all locales
+#    shell: sed -i -e /override_install_langs/d /etc/yum.conf
+
+  - name: Reinstall glibc-common
+    shell: microdnf -y reinstall glibc-common
+
+  - name: Install php-fpm configuration
+    copy:
+      src: php-fpm.www.conf
+      dest: /etc/php-fpm.d/www.conf
+
+  #TODO: install smarty with standard packages when available
+  # Install composer
+  - name: install composer
+    ansible.builtin.shell: |
+      php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+      php composer-setup.php
+      php -r "unlink('composer-setup.php');"
+
+  # Install composer dependencies
+  - name: install composer dependencies
+    ansible.builtin.shell: |
+      /composer.phar require smarty/smarty:3.1.33
+
+  - name: Create directories
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - '/etc/fusiondirectory'
+      - '/etc/ldap/schema/fusiondirectory'
+      - '/usr/share/fusiondirectory'
+      - '/usr/local/share/fusiondirectory'
+      - '/var/cache/fusiondirectory'
+      - '/usr/local/share/fusiondirectory/tools'
+
+  - name: Clone FD git repository
+    git:
+      repo: 'https://gitlab.fusiondirectory.org/fusiondirectory/fusiondirectory.git'
+      dest: '/usr/src/fd'
+      version: 'fusiondirectory-1.4'
+
+  # Get fusiondirectory-tools and all its repo dependencies
+  - name: Clone fusiondirectory-integrator git repository
+    git:
+      repo: 'https://gitlab.fusiondirectory.org/fusiondirectory/fusiondirectory-integrator.git'
+      dest: '/usr/src/fusiondirectory-integrator'
+      version: '1.0'
+
+  - name: Clone fusiondirectory-tools git repository
+    git:
+      repo: 'https://gitlab.fusiondirectory.org/fusiondirectory/fusiondirectory-tools.git'
+      dest: '/usr/src/fusiondirectory-tools'
+      version: '1.0'
+
+  - name: Clone FD-plugins git repository
+    git:
+      repo: 'https://gitlab.fusiondirectory.org/fusiondirectory/fd-plugins.git'
+      dest: '/usr/src/fd-plugins'
+      version: 'fusiondirectory-1.4'
+
+  - name: Clone scriptaculous git repository
+    git:
+      repo: 'https://gitlab.fusiondirectory.org/fusiondirectory/scriptaculous.git'
+      dest: '/usr/src/scriptaculous'
+      version: 'master'
+
+  - name: Install fusiondirectory-tools binaries
+    copy:
+      src: /usr/src/fusiondirectory-tools/bin/{{ item }}
+      dest: /usr/local/share/fusiondirectory/tools
+      owner: root
+      group: root
+      mode: 0755
+      remote_src: yes
+    with_items:
+      - fusiondirectory-schema-manager
+      - fusiondirectory-configuration-manager
+      - fusiondirectory-migration-manager
+      - fusiondirectory-plugins-manager
+
+  - name: Adapt autoloader.php path in fusiondirectory-tools binaries
+    replace:
+      path: "/usr/local/share/fusiondirectory/tools/{{ item }}"
+      regexp: '^require .*autoloader\.php.*$'
+      replace: "require '/usr/local/share/fusiondirectory/tools/autoloader.php';"
+    with_items:
+      - fusiondirectory-schema-manager
+      - fusiondirectory-configuration-manager
+      - fusiondirectory-migration-manager
+      - fusiondirectory-plugins-manager
+
+  - name: Install fusiondirectory-tools dependencies
+    copy:
+      src: /usr/src/{{ item }}
+      dest: /usr/local/share/fusiondirectory/tools/
+      owner: root
+      group: root
+      remote_src: yes
+    with_items:
+      - fusiondirectory-tools/src/FusionDirectory
+      - fusiondirectory-integrator/src/FusionDirectory
+      - fusiondirectory-integrator/src/autoloader.php
+
+  - name: Install scriptaculous dependencies
+    copy:
+      src: /usr/src/scriptaculous/src/
+      dest: /usr/local/share/fusiondirectory/html/include/
+      owner: root
+      group: root
+      remote_src: yes
+
+  - name: Install Smarty plugins
+    copy:
+      src: /usr/src/fd/contrib/smarty/plugins/{{ item }}
+      dest: /vendor/smarty/smarty/libs/plugins/
+      owner: root
+      group: root
+      mode: 0644
+      remote_src: yes
+    with_items:
+      - block.render.php
+      - function.filePath.php
+      - function.iconPath.php
+      - function.msgPool.php
+
+  - name: Install source files
+    copy:
+      src: /usr/src/fd/{{ item }}
+      dest: /usr/local/share/fusiondirectory/
+      owner: root
+      group: root
+      mode: 0755
+      remote_src: yes
+      directory_mode: yes
+    with_items:
+      - html
+      - ihtml
+      - locale
+      - plugins
+      - setup
+      - include
+
+  - name: Adapt Smarty path
+    replace:
+      path: "{{ item }}"
+      regexp: '\/usr\/share\/php\/smarty3'
+      replace: '/vendor/smarty/smarty/libs'
+    with_items:
+      - /usr/local/share/fusiondirectory/include/variables.inc
+      - /usr/local/share/fusiondirectory/tools/FusionDirectory/Tools/Setup.php
+
+  - name: Adapt FD home path
+    replace:
+      path: "{{ item }}"
+      regexp: '\/usr\/share\/fusiondirectory'
+      replace: '/usr/local/share/fusiondirectory'
+    with_items:
+      - /usr/local/share/fusiondirectory/tools/FusionDirectory/Tools/Setup.php
+
+  - name: Install Smarty gettext plugin
+    copy:
+      src: vendor/smarty-gettext/{{ item }}
+      dest: /vendor/smarty/smarty/libs/plugins/
+      owner: root
+      group: root
+      mode: 0644
+    with_items:
+      - block.t.php
+      - function.locale.php
+
+  - name: Install prototype.js
+    copy:
+      src: vendor/prototype/prototype.js
+      dest: /usr/local/share/fusiondirectory/html/include/
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Deploy main Fusion Directory schema
+    copy:
+      src: /usr/src/fd/contrib/openldap/{{ item }}
+      dest: /etc/ldap/schema/fusiondirectory/
+      owner: root
+      group: root
+      mode: 0644
+      remote_src: yes
+    with_items:
+      - core-fd-conf.schema
+      - core-fd.schema
+      - ldapns.schema
+      - template-fd.schema
+
+  - name: Check directories
+    command: php -d include_path=/usr/local/share/fusiondirectory/tools /usr/local/share/fusiondirectory/tools/fusiondirectory-configuration-manager --yes --check-directories
+
+  - name: Install plugins
+    shell: /install-plugin.sh "{{ item }}"
+    loop:
+      - audit
+      - dsa
+      - mail
+      - ssh
+      - personal
+      - posix
+      - ppolicy
+      - webservice
+      - systems
+      - public-forms
+      - supann
+      - ldapdump
+      - ldapmanager
+      - newsletter
+      - posix
+      - community
+      - dyngroups
+
+  - name: Patch for having logs to stdout in functions.inc
+    ansible.builtin.blockinfile:
+      path: /usr/local/share/fusiondirectory/include/functions.inc
+      marker: "  /* {mark} Patch for having logs to stdout */"
+      insertafter: 'syslog\('
+      block: |2
+          if(!defined('STDOUT')) define('STDOUT', fopen('php://stdout', 'wb'));
+          fwrite(STDOUT, "FusionDirectory $username: $message\n");
+
+  - name: Patch for having logs to stdout in class_ldap.inc
+    ansible.builtin.blockinfile:
+      path: /usr/local/share/fusiondirectory/include/class_ldap.inc
+      marker: "        /* {mark} Patch for having logs to stdout */"
+      insertafter: 'syslog\('
+      block: |2
+                if(!defined('STDOUT')) define('STDOUT', fopen('php://stdout', 'wb'));
+                fwrite(STDOUT, "$string\n");
+
+  - name: Patch for fd redirection to portal
+    ansible.builtin.blockinfile:
+      path: /usr/local/share/fusiondirectory/html/index.php
+      marker: "  // {mark} Patch for fd redirection to portal"
+      insertafter: '^  session::start\(\);'
+      block: |2
+          header('location:https://'.$config->get_cfg_value('portalUrl').'/');
+          exit();
+
+  - name: Patch for audit plugin
+    replace:
+      path: "{{ item }}"
+      regexp: '^tags[ ]*:'
+      replace: '  tags:'
+    with_items:
+      - /usr/src/fd-plugins/audit/contrib/yaml/description.yaml
+
+  - name: Update cache and locales
+    command: php -d include_path=/usr/local/share/fusiondirectory/tools /usr/local/share/fusiondirectory/tools/fusiondirectory-configuration-manager --yes --update-cache --update-locales --write-vars
+
+  - name: Adapt ownership to fusioniam
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      recurse: yes
+      owner: fusioniam
+      group: fusioniam
+    loop:
+      - /.ansible
+      - /etc/fusiondirectory
+      - /run/php-fpm
+      - /var/lib/php/wsdlcache
+      - /var/lib/php/session
+      - /var/lib/php/opcache
+      - /var/cache/fusiondirectory
+      - /var/spool/fusiondirectory
+      - /etc/nginx/conf.d
+      - /run/nginx
+      - /var/log/php-fpm
+      - /var/lib/nginx
+      - /var/log/nginx

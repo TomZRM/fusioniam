@@ -1,0 +1,115 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Install LTB repository
+    yum_repository:
+      name: LTB-project-packages-noarch
+      description: LTB project packages (noarch) YUM repo
+      file: ltb-project
+      baseurl: https://ltb-project.org/rpm/$releasever/noarch
+      gpgcheck: yes
+
+  - name: Install LTB GPG key
+    copy:
+      src: RPM-GPG-KEY-LTB-project
+      dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-LTB-project
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Import LTB GPG key
+    rpm_key:
+      key: /etc/pki/rpm-gpg/RPM-GPG-KEY-LTB-project
+      state: present
+
+  - name: Install Remi GPG key
+    copy:
+      src: RPM-GPG-KEY-remi2021
+      dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-remi.el9
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Import Remi GPG key
+    rpm_key:
+      key: /etc/pki/rpm-gpg/RPM-GPG-KEY-remi.el9
+      state: present
+
+  - name: Install Remi repo
+    yum:
+     name: "https://rpms.remirepo.net/enterprise/remi-release-9.rpm"
+     state: 'present'
+
+  - name: Enable PHP 8.2 Remi repo
+    shell: dnf -y module install php:remi-8.2
+
+  - name: Install packages
+    yum:
+      name:
+       - nginx
+       - php-soap
+       - php-fpm
+       - white-pages-0.4
+       - php-pecl-apcu
+      state: present
+
+  - name: Install php-fpm configuration
+    copy:
+     src: php-fpm.www.conf
+     dest: /etc/php-fpm.d/www.conf
+
+  - name: Adapt ownership to fusioniam
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      recurse: yes
+      owner: fusioniam
+      group: fusioniam
+    loop:
+      - /.ansible
+      - /etc/nginx/conf.d
+      - /usr/share/white-pages/conf
+      - /var/cache/white-pages/templates_c
+      - /var/cache/white-pages/cache
+      - /var/cache/white-pages
+      - /var/cache
+      - /run/php-fpm
+      - /run/nginx
+      - /var/lib/php/wsdlcache
+      - /var/lib/php/session
+      - /var/log/php-fpm
+      - /var/lib/nginx
+      - /var/log/nginx
+      - /usr/share/white-pages/photos
+
+
+  # Patch for map feature
+  - name: Patch for map feature - create js directory
+    ansible.builtin.file:
+      path: "/usr/share/white-pages/htdocs/js"
+      state: directory
+  - name: Patch for map feature - get map.js
+    ansible.builtin.get_url:
+      url: https://raw.githubusercontent.com/ltb-project/white-pages/master/htdocs/js/map.js
+      dest: /usr/share/white-pages/htdocs/js/map.js
+      mode: '0644'
+
+  #TODO: install smarty with standard packages when available
+  # Adapt path of smarty
+  - name: Replace path to smarty in conf file
+    ansible.builtin.replace:
+      path: /usr/share/white-pages/conf/config.inc.php
+      regexp: 'define\("SMARTY", "[^"]+"\);'
+      replace: 'define("SMARTY", "/vendor/smarty/smarty/libs/Smarty.class.php");'
+
+  # Install composer
+  - name: install composer
+    ansible.builtin.shell: |
+      php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+      php composer-setup.php
+      php -r "unlink('composer-setup.php');"
+
+  # Install composer dependencies
+  - name: install composer dependencies
+    ansible.builtin.shell: |
+      /composer.phar require smarty/smarty:4.3.4
